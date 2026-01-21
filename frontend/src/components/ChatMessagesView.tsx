@@ -20,6 +20,22 @@ type MdComponentProps = {
   [key: string]: any;
 };
 
+/**
+ * Check if a string is valid JSON.
+ * Used to detect AccountProfile responses for URL enrichment.
+ */
+function isJsonString(str: string): boolean {
+  if (!str || typeof str !== "string") return false;
+  const trimmed = str.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return false;
+  try {
+    JSON.parse(trimmed);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Markdown components (from former ReportView.tsx)
 const mdComponents = {
   h1: ({ className, children, ...props }: MdComponentProps) => (
@@ -186,6 +202,15 @@ const AiMessageBubble: React.FC<AiMessageBubbleProps> = ({
     isLastMessage && isOverallLoading ? liveActivity : historicalActivity;
   const isLiveActivityForThisBubble = isLastMessage && isOverallLoading;
 
+  // Get the content as a string
+  const contentString =
+    typeof message.content === "string"
+      ? message.content
+      : JSON.stringify(message.content);
+
+  // Check if the content is JSON (AccountProfile response)
+  const isJson = isJsonString(contentString);
+
   return (
     <div className={`relative break-words flex flex-col`}>
       {activityForThisBubble && activityForThisBubble.length > 0 && (
@@ -196,24 +221,26 @@ const AiMessageBubble: React.FC<AiMessageBubbleProps> = ({
           />
         </div>
       )}
-      <ReactMarkdown components={mdComponents}>
-        {typeof message.content === "string"
-          ? message.content
-          : JSON.stringify(message.content)}
-      </ReactMarkdown>
+      {isJson ? (
+        // Render JSON as formatted pre block
+        <div className="bg-neutral-900 rounded-lg p-4 overflow-x-auto">
+          <div className="text-xs text-neutral-400 mb-2 font-semibold">
+            Account Profile (JSON)
+          </div>
+          <pre className="text-sm font-mono text-neutral-100 whitespace-pre-wrap">
+            {contentString}
+          </pre>
+        </div>
+      ) : (
+        // Render as Markdown
+        <ReactMarkdown components={mdComponents}>{contentString}</ReactMarkdown>
+      )}
       <Button
         variant="default"
         className={`cursor-pointer bg-neutral-700 border-neutral-600 text-neutral-300 self-end ${
           message.content.length > 0 ? "visible" : "hidden"
         }`}
-        onClick={() =>
-          handleCopy(
-            typeof message.content === "string"
-              ? message.content
-              : JSON.stringify(message.content),
-            message.id!
-          )
-        }
+        onClick={() => handleCopy(contentString, message.id!)}
       >
         {copiedMessageId === message.id ? "Copied" : "Copy"}
         {copiedMessageId === message.id ? <CopyCheck /> : <Copy />}

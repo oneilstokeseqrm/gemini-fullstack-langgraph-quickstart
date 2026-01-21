@@ -30,9 +30,24 @@ Follow these steps to get the application running locally for development and te
 -   Node.js and npm (or yarn/pnpm)
 -   Python 3.11+
 -   **`GEMINI_API_KEY`**: The backend agent requires a Google Gemini API key.
-    1.  Navigate to the `backend/` directory.
-    2.  Create a file named `.env` by copying the `backend/.env.example` file.
-    3.  Open the `.env` file and add your Gemini API key: `GEMINI_API_KEY="YOUR_ACTUAL_API_KEY"`
+
+**Environment Files:**
+
+This project uses two separate `.env` files depending on how you run it:
+
+| File | Purpose | Required Keys |
+|------|---------|---------------|
+| `backend/.env` | Local development (`langgraph dev`, `make dev`) | `GEMINI_API_KEY` |
+| `.env` (root) | Docker Compose deployment | `GEMINI_API_KEY`, `LANGSMITH_API_KEY` |
+
+**For local development:**
+1. Navigate to the `backend/` directory.
+2. Create a file named `.env` by copying `backend/.env.example`.
+3. Add your Gemini API key: `GEMINI_API_KEY="YOUR_ACTUAL_API_KEY"`
+
+**For Docker Compose:**
+1. Create `.env` in the **project root** by copying `.env.example`.
+2. Add both keys: `GEMINI_API_KEY` and `LANGSMITH_API_KEY` (required for LangGraph Docker licensing).
 
 **2. Install Dependencies:**
 
@@ -84,6 +99,21 @@ cd backend
 python examples/cli_research.py "What are the latest trends in renewable energy?"
 ```
 
+## API Rate Limiting & Throttle Protection
+
+The agent includes built-in protection against Gemini API rate limits (429 errors). Default settings are conservative to prevent throttling:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MAX_CONCURRENT_RUNS` | 1 | Serializes concurrent enrichment runs |
+| `MAX_PARALLEL_SEARCHES` | 1 | Limits parallel web research calls |
+| `DEFAULT_INITIAL_QUERIES` | 1 | Initial search queries per run |
+| `DEFAULT_MAX_LOOPS` | 1 | Research loops before finalizing |
+| `MAX_API_RETRIES` | 5 | Retry attempts on throttle errors |
+| `INITIAL_BACKOFF_SECONDS` | 2.0 | Initial retry backoff delay |
+| `MAX_BACKOFF_SECONDS` | 60.0 | Maximum retry backoff delay |
+
+If you have a higher Gemini API quota, you can increase these values in your `.env` file. See `.env.example` for full configuration options.
 
 ## Deployment
 

@@ -21,7 +21,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--reasoning-model",
-        default="gemini-2.5-pro-preview-05-06",
+        default="gemini-2.0-flash",
         help="Model for the final answer",
     )
     args = parser.parse_args()

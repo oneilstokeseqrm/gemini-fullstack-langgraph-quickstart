@@ -83,7 +83,7 @@ answer_instructions = """Generate a high-quality answer to the user's question b
 
 Instructions:
 - The current date is {current_date}.
-- You are the final step of a multi-step research process, don't mention that you are the final step. 
+- You are the final step of a multi-step research process, don't mention that you are the final step.
 - You have access to all the information gathered from the previous steps.
 - You have access to the user's question.
 - Generate a high-quality answer to the user's question based on the provided summaries and the user's question.
@@ -91,6 +91,76 @@ Instructions:
 
 User Context:
 - {research_topic}
+
+Summaries:
+{summaries}"""
+
+
+# Account Enrichment Prompts (for URL input mode)
+
+account_enrichment_query_instructions = """Your goal is to generate search queries to gather comprehensive information about a company from its URL.
+
+Instructions:
+- The user has provided a company URL: {company_url}
+- Generate search queries that will help gather the following information:
+  1. Company name and official description
+  2. Industry and business model
+  3. Headquarters location
+  4. Year founded
+  5. Employee count or company size
+  6. Key products or services
+- Focus on authoritative sources like the company's own website, LinkedIn, Crunchbase, Wikipedia, and news articles.
+- Generate {number_queries} targeted queries.
+- The current date is {current_date}.
+
+Format:
+- Format your response as a JSON object with ALL two of these exact keys:
+   - "rationale": Brief explanation of why these queries are relevant
+   - "query": A list of search queries
+
+Example:
+```json
+{{
+    "rationale": "To build a comprehensive company profile, we need to search for official company information, business details, and recent news coverage.",
+    "query": ["Stripe company official website about", "Stripe headquarters location founded year", "Stripe employee count company size"],
+}}
+```
+
+Company URL: {company_url}"""
+
+
+account_enrichment_answer_instructions = """Extract CRM-ready structured company profile data from research summaries.
+
+CRITICAL: Output must be CRM-friendly - short, structured fields for database storage. NO long narratives.
+
+Company URL: {input_url}
+Current date: {current_date}
+
+=== REQUIRED FIELDS ===
+- company_name: Official company name (REQUIRED - use best effort from sources)
+
+=== CORE CRM FIELDS (use null if unknown) ===
+- headquarters: "City, State" or "City, Country" format only
+- industry: Single primary industry classification
+- founded_year: Integer year only (e.g., 2010)
+- employee_count_range: MUST be one of: "1-10", "11-50", "51-200", "201-500", "501-1000", "1001-5000", "5001-10000", "10000+"
+- company_type: One of: "public", "private", "subsidiary", "nonprofit", "government", or null
+- primary_products: Array of product/service names (max 5 items, short names only)
+- customer_segments: Array like ["Enterprise", "SMB", "Consumer", "Government"] (max 4)
+- data_delivery_channels: Array like ["API", "SaaS", "Platform", "On-premise"] (max 4)
+
+=== LONG TEXT FIELDS (strict length limits) ===
+- one_line_description: ONE sentence, max 20 words. Example: "Stripe provides payment processing infrastructure for internet businesses."
+- crm_summary: 2-4 sentences MAX. No fluff. Just facts about what the company does, who they serve, and key differentiators.
+- differentiators: Array of short bullets (max 5), each under 10 words
+- recent_notable_updates: Array of recent news/updates (max 3), each under 15 words
+
+=== STRICT RULES ===
+1. If information is not in the summaries, use null or empty array []
+2. Do NOT write essays or long descriptions
+3. Do NOT start with "As of [date]..." or similar preambles
+4. Do NOT include marketing fluff or vague statements
+5. Arrays should contain SHORT strings, not sentences
 
 Summaries:
 {summaries}"""

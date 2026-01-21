@@ -6,6 +6,9 @@ import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { ChatMessagesView } from "@/components/ChatMessagesView";
 import { Button } from "@/components/ui/button";
 
+// Mock tenant ID for development - in production, this would come from JWT/auth
+const MOCK_TENANT_ID = import.meta.env.VITE_MOCK_TENANT_ID || "tenant-dev-001";
+
 export default function App() {
   const [processedEventsTimeline, setProcessedEventsTimeline] = useState<
     ProcessedEvent[]
@@ -21,6 +24,7 @@ export default function App() {
     initial_search_query_count: number;
     max_research_loops: number;
     reasoning_model: string;
+    tenant_id: string;
   }>({
     apiUrl: import.meta.env.DEV
       ? "http://localhost:2024"
@@ -139,6 +143,7 @@ export default function App() {
         initial_search_query_count: initial_search_query_count,
         max_research_loops: max_research_loops,
         reasoning_model: model,
+        tenant_id: MOCK_TENANT_ID,
       });
     },
     [thread]

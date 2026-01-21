@@ -40,5 +40,11 @@ services:
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       LANGSMITH_API_KEY: ${LANGSMITH_API_KEY}
-      REDIS_URI: redis://langgraph-redis:6379
-      POSTGRES_URI: postgres://postgres:postgres@langgraph-postgres:5432/postgres?sslmode=disable
+      REDIS_URI: ${REDIS_URI:-redis://langgraph-redis:6379}
+      POSTGRES_URI: ${POSTGRES_URI:-postgres://postgres:postgres@langgraph-postgres:5432/postgres?sslmode=disable}
+      # Dev/test only: force throttle in specific node (values: generate_query, web_research, reflection, finalize_answer)
+      FORCE_THROTTLE_NODE: ${FORCE_THROTTLE_NODE:-}
+      # Dev/test only: force non-throttle error in specific node (values: web_research, reflection)
+      FORCE_ERROR_NODE: ${FORCE_ERROR_NODE:-}
+      # Dev/test only: force zero sources in finalize_answer (values: 1, true, yes)
+      FORCE_NO_SOURCES: ${FORCE_NO_SOURCES:-}
